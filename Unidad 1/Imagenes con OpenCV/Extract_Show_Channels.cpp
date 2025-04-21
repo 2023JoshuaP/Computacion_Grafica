@@ -4,13 +4,13 @@ using namespace std;
 using namespace cv;
 
 void show_images_channels(const Mat& image) {
-    Mat blue_channel(image.rows, image.cols, CV_8UC1);
-    Mat green_channel(image.rows, image.cols, CV_8UC1);
-    Mat red_channel(image.rows, image.cols, CV_8UC1);
-    Mat channels[3];
-    
     int columns = image.cols;
     int rows = image.rows;
+    
+    Mat blue_channel(rows, columns, CV_8UC1);
+    Mat green_channel(rows, columns, CV_8UC1);
+    Mat red_channel(rows, columns, CV_8UC1);
+    Mat channels[3];
     
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < columns; j++) {
@@ -32,9 +32,9 @@ void show_images_channels(const Mat& image) {
 void show_channels(const Mat& image) {
     int columns = image.cols;
     int rows = image.rows;
-    int minimun_value_blue = 0, maximun_value_blue = 255;
-    int minimun_value_green = 0, maximun_value_green = 255;
-    int minimun_value_red = 0, maximun_value_red = 255;
+    int minimun_value_blue = 255, maximun_value_blue = 0;
+    int minimun_value_green = 255, maximun_value_green = 0;
+    int minimun_value_red = 255, maximun_value_red = 0;
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < columns; j++) {
@@ -42,23 +42,23 @@ void show_channels(const Mat& image) {
             int channel_green = image.at<Vec3b>(i, j)[1];
             int channel_red = image.at<Vec3b>(i, j)[2];
 
-            if (channel_blue > minimun_value_blue) {
-                maximun_value_blue = channel_blue;
-            }
-            if (channel_blue < maximun_value_blue) {
+            if (channel_blue < minimun_value_blue) {
                 minimun_value_blue = channel_blue;
             }
-            if (channel_green > minimun_value_green) {
-                maximun_value_green = channel_green;
+            if (channel_blue > maximun_value_blue) {
+                maximun_value_blue = channel_blue;
             }
-            if (channel_green < maximun_value_green) {
+            if (channel_green < minimun_value_green) {
                 minimun_value_green = channel_green;
             }
-            if (channel_red > minimun_value_red) {
-                maximun_value_red = channel_red;
+            if (channel_green > maximun_value_green) {
+                maximun_value_green = channel_green;
             }
-            if (channel_red < maximun_value_red) {
+            if (channel_red < minimun_value_red) {
                 minimun_value_red = channel_red;
+            }
+            if (channel_red > maximun_value_red) {
+                maximun_value_red = channel_red;
             }
         }
     }
@@ -70,12 +70,18 @@ void show_channels(const Mat& image) {
 }
 
 int main() {
-    Mat image_original = imread("imagen.png");
+    string image_file;
+    cout << "Ingrese el nombre de la imagen (con extension): ";
+    cin >> image_file;
+    string image_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 1/Imagenes con OpenCV/Imagenes/" + image_file;
+    Mat image_original = imread(image_path);
     if (image_original.empty()) {
         cout << "No se pudo cargar la imagen." << endl;
         return -1;
     }
-    imshow("Imagen Original", image_original);
+    Mat image_rgb;
+    cvtColor(image_original, image_rgb, COLOR_BGR2RGB);
+    imshow("Imagen Original", image_rgb);
     waitKey(0);
     show_images_channels(image_original);
     show_channels(image_original);
