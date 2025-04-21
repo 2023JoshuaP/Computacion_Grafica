@@ -3,6 +3,25 @@
 using namespace std;
 using namespace cv;
 
+void show_image(const Mat& image) {
+    int columns = image.cols;
+    int rows = image.rows;
+
+    Mat image_pixel(rows, columns, CV_8UC3);
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            Vec3b pixel = image.at<Vec3b>(i, j);
+            image_pixel.at<Vec3b>(i, j)[2] = pixel[2];
+            image_pixel.at<Vec3b>(i, j)[1] = pixel[1];
+            image_pixel.at<Vec3b>(i, j)[0] = pixel[0];
+        }
+    }
+    imshow("Imagen Original", image);
+    imshow("Imagen Original RGB", image_pixel);
+    waitKey(0);
+}
+
 void show_images_channels(const Mat& image) {
     int columns = image.cols;
     int rows = image.rows;
@@ -74,15 +93,19 @@ int main() {
     cout << "Ingrese el nombre de la imagen (con extension): ";
     cin >> image_file;
     string image_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 1/Imagenes con OpenCV/Imagenes/" + image_file;
+    
     Mat image_original = imread(image_path);
     if (image_original.empty()) {
         cout << "No se pudo cargar la imagen." << endl;
         return -1;
     }
-    Mat image_rgb;
-    cvtColor(image_original, image_rgb, COLOR_BGR2RGB);
-    imshow("Imagen Original", image_rgb);
-    waitKey(0);
+    // Mat image_rgb;
+    // cvtColor(image_original, image_rgb, COLOR_BGR2RGB);
+    // imshow("Imagen Original", image_original);
+    // imshow("Imagen Original en RGB", image_rgb);
+    // waitKey(0);
+    
+    show_image(image_original);
     show_images_channels(image_original);
     show_channels(image_original);
     return 0;
