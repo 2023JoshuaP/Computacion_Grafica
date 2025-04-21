@@ -3,51 +3,6 @@
 using namespace std;
 using namespace cv;
 
-void show_image(const Mat& image) {
-    int columns = image.cols;
-    int rows = image.rows;
-
-    Mat image_pixel(rows, columns, CV_8UC3);
-
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < columns; j++) {
-            Vec3b pixel = image.at<Vec3b>(i, j);
-            image_pixel.at<Vec3b>(i, j)[2] = pixel[2];
-            image_pixel.at<Vec3b>(i, j)[1] = pixel[1];
-            image_pixel.at<Vec3b>(i, j)[0] = pixel[0];
-        }
-    }
-    imshow("Imagen Original", image);
-    imshow("Imagen Original RGB", image_pixel);
-    waitKey(0);
-}
-
-void show_images_channels(const Mat& image) {
-    int columns = image.cols;
-    int rows = image.rows;
-    
-    Mat blue_channel(rows, columns, CV_8UC1);
-    Mat green_channel(rows, columns, CV_8UC1);
-    Mat red_channel(rows, columns, CV_8UC1);
-    Mat channels[3];
-    
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < columns; j++) {
-            blue_channel.at<uchar>(i, j) = image.at<Vec3b>(i, j)[0];
-            green_channel.at<uchar>(i, j) = image.at<Vec3b>(i, j)[1];
-            red_channel.at<uchar>(i, j) = image.at<Vec3b>(i, j)[2];
-        }
-    }
-
-    channels[0] = blue_channel;
-    channels[1] = green_channel;
-    channels[2] = red_channel;
-    imshow("Canal Azul", channels[0]);
-    imshow("Canal Verde", channels[1]);
-    imshow("Canal Rojo", channels[2]);
-    waitKey(0);
-}
-
 void show_channels(const Mat& image) {
     int columns = image.cols;
     int rows = image.rows;
@@ -55,11 +10,19 @@ void show_channels(const Mat& image) {
     int minimun_value_green = 255, maximun_value_green = 0;
     int minimun_value_red = 255, maximun_value_red = 0;
 
+    Mat blue_channel(rows, columns, CV_8UC1);
+    Mat green_channel(rows, columns, CV_8UC1);
+    Mat red_channel(rows, columns, CV_8UC1);
+
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < columns; j++) {
             int channel_blue = image.at<Vec3b>(i, j)[0];
             int channel_green = image.at<Vec3b>(i, j)[1];
             int channel_red = image.at<Vec3b>(i, j)[2];
+
+            blue_channel.at<uchar>(i, j) = channel_blue;
+            green_channel.at<uchar>(i, j) = channel_green;
+            red_channel.at<uchar>(i, j) = channel_red;
 
             if (channel_blue < minimun_value_blue) {
                 minimun_value_blue = channel_blue;
@@ -82,6 +45,11 @@ void show_channels(const Mat& image) {
         }
     }
 
+    imshow("Canal Azul", blue_channel);
+    imshow("Canal Verde", green_channel);
+    imshow("Canal Rojo", red_channel);
+    waitKey(0);
+
     cout << "Valores de los canales:" << endl;
     cout << "Canal Azul: Minimo: " << minimun_value_blue << ", Maximo: " << maximun_value_blue << endl;
     cout << "Canal Verde: Minimo: " << minimun_value_green << ", Maximo: " << maximun_value_green << endl;
@@ -99,14 +67,10 @@ int main() {
         cout << "No se pudo cargar la imagen." << endl;
         return -1;
     }
-    // Mat image_rgb;
-    // cvtColor(image_original, image_rgb, COLOR_BGR2RGB);
-    // imshow("Imagen Original", image_original);
-    // imshow("Imagen Original en RGB", image_rgb);
-    // waitKey(0);
-    
-    show_image(image_original);
-    show_images_channels(image_original);
+
+    imshow("Imagen Original", image_original);
+    waitKey(0);
+
     show_channels(image_original);
     return 0;
 }
