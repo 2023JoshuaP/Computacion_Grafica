@@ -11,7 +11,7 @@ Mat rotate_image(const Mat& image) {
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < columns; j++) {
-            image_rotate.at<Vec3b>(i, j) = image.at<Vec3b>(rows - j - 1, i);
+            image_rotate.at<Vec3b>(j, rows - i - 1) = image.at<Vec3b>(i, j);
         }
     }
 
