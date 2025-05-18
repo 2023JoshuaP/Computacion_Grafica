@@ -3,8 +3,6 @@
 using namespace std;
 using namespace cv;
 
-
-
 vector<Vec3b> color_map_personalized() {
     vector<Vec3b> color_map(256);
     Mat color_map_image(50, 256, CV_8UC3);
@@ -26,23 +24,25 @@ vector<Vec3b> color_map_personalized() {
 Mat create_image_personalized(const Mat& image, const vector<Vec3b>& color_map) {
     Mat image_gray(image.rows, image.cols, CV_8UC1);
     Mat image_transformed(image.rows, image.cols, CV_8UC3);
+
     if (image.channels() == 3) {
         for (int i = 0; i < image.rows; i++) {
             for (int j = 0; j < image.cols; j++) {
                 Vec3b pixel = image.at<Vec3b>(i, j);
                 uchar gray_value = static_cast<uchar>(0.299 * pixel[2] + 0.587 * pixel[1] + 0.114 * pixel[0]);
                 image_gray.at<uchar>(i, j) = gray_value;
+
                 Vec3b color_value = color_map[gray_value];
                 image_transformed.at<Vec3b>(i, j) = color_value;
             }
         }
+        imshow("Imagen en Escala de Grises", image_gray);
     }
     else {
         image_gray = image.clone();
-    
         for (int i = 0; i < image.rows; i++) {
             for (int j = 0; j < image.cols; j++) {
-                uchar gray_value = image_gray.at<uchar>(i, j);
+                uchar gray_value = image.at<uchar>(i, j);
                 Vec3b color_value = color_map[gray_value];
                 image_transformed.at<Vec3b>(i, j) = color_value;
             }
