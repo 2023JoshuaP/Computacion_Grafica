@@ -15,7 +15,7 @@ vector<int> generate_histogram(const Mat& image) {
             histogram[pixel_value]++;
         }
     }
-    return histogram;;
+    return histogram;
 }
 
 void save_histogram(const vector<int>& histogram, const string& filename) {
