@@ -33,8 +33,8 @@ Mat equalization(const Mat& image, const vector<int>& histogram) {
     
     int acumulado = histogram[0];
     f[0] = 0;
-    for (int i = 1; i < 255; i++) {
-        f[i] = (uchar)((255.0f * acumulado) / total_pixels);
+    for (int i = 0; i < 256; i++) {
+        f[i] = static_cast<uchar>((255.0f * acumulado) / total_pixels);
         acumulado += histogram[i];
     }
     f[255] = 255;
@@ -66,9 +66,11 @@ Mat binarized(const Mat& image, int threshold) {
 }
 
 int main() {
-    string image;
+    string image, file_histogram;
     cout << "Enter the name file image (with extension): ";
     cin >> image;
+    cout << "Enter the histogram file name in txt format: ";
+    cin >> file_histogram;
     string path_image = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 1/Imagenes con OpenCV/Imagenes/Equalization Histogram Images/" + image;
     string path_histogram = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 1/Imagenes con OpenCV/Imagenes/Equalization Histogram Images/";
     Mat image_original = imread(path_image, IMREAD_GRAYSCALE);
@@ -81,29 +83,18 @@ int main() {
     imshow("Image Original", image_original);
 
     vector<int> histogram = generate_histogram(image_original);
-    save_histogram(histogram, path_histogram + "histogram.txt");
+    save_histogram(histogram, path_histogram + "histogram_" + file_histogram + "_original.txt");
 
     Mat image_equalized = equalization(image_original, histogram);
     vector<int> histogram_equalized = generate_histogram(image_equalized);
-    save_histogram(histogram_equalized, path_histogram + "histogram_equalized.txt");
+    save_histogram(histogram_equalized, path_histogram + "histogram_" + file_histogram + "_equalized.txt");
     imshow("Image Equalized", image_equalized);
 
     Mat image_binarized = binarized(image_equalized, 128);
+    vector<int>histogram_binarized = generate_histogram(image_binarized);
+    save_histogram(histogram_binarized, path_histogram + "histogram_" + file_histogram + "_binarized.txt");
     imshow("Image Binarized", image_binarized);
 
     waitKey(0);
     return 0;
 }
-
-/*
-----------------------------------------
-Corresponding Threshold
-
-imagen_0.png = 128
-imagen_1.png = 128
-imagen_2.png = 128
-imagen_3.png = 128
-imagen_4.png = 128
-imagen_5.png = 128
-----------------------------------------
-*/
