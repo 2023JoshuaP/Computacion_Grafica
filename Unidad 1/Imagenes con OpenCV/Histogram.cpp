@@ -49,6 +49,22 @@ Mat equalization(const Mat& image, const vector<int>& histogram) {
     return image_equalized;
 }
 
+Mat binarized(const Mat& image, int threshold) {
+    Mat image_binarized = image.clone();
+    for (int i = 0; i < image.rows; i++) {
+        for (int j = 0; j < image.cols; j++) {
+            uchar pixel_value = image.at<uchar>(i, j);
+            if (pixel_value > threshold) {
+                image_binarized.at<uchar>(i, j) = 255;
+            }
+            else {
+                image_binarized.at<uchar>(i, j) = 0;
+            }
+        }
+    }
+    return image_binarized;
+}
+
 int main() {
     string image;
     cout << "Enter the name file image (with extension): ";
@@ -68,8 +84,26 @@ int main() {
     save_histogram(histogram, path_histogram + "histogram.txt");
 
     Mat image_equalized = equalization(image_original, histogram);
+    vector<int> histogram_equalized = generate_histogram(image_equalized);
+    save_histogram(histogram_equalized, path_histogram + "histogram_equalized.txt");
     imshow("Image Equalized", image_equalized);
+
+    Mat image_binarized = binarized(image_equalized, 128);
+    imshow("Image Binarized", image_binarized);
 
     waitKey(0);
     return 0;
 }
+
+/*
+----------------------------------------
+Corresponding Threshold
+
+imagen_0.png = 128
+imagen_1.png = 128
+imagen_2.png = 128
+imagen_3.png = 128
+imagen_4.png = 128
+imagen_5.png = 128
+----------------------------------------
+*/
