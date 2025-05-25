@@ -9,14 +9,20 @@ vector<Vec3b> color_map_personalized() {
     for (int i = 0; i < 256; i++) {
         float t = i /255.0f;
         /* Primer Mapa de Color */
-        uchar b = static_cast<uchar>(255 * (1 - t));
-        uchar g = static_cast<uchar>(255*t);
-        uchar r = 128;
+        // uchar b = static_cast<uchar>(255 * (1 - t));
+        // uchar g = static_cast<uchar>(255*t);
+        // uchar r = 128;
 
         /* Segundo Mapa de Color */
         // uchar b = static_cast<uchar>(255 * (1 - t));
         // uchar g = 64;
         // uchar r = static_cast<uchar>(255*t);
+
+        /* Tercer Mapa de Color */
+        uchar r = static_cast<uchar>(255 * t);
+        uchar g = static_cast<uchar>(255 * (1 - t));
+        uchar b = static_cast<uchar>(127 * sin(6.28f * t));
+
         Vec3b c(b, g, r);
         color_map[i] = c;
         for (int j = 0; j < 50; j++) {
