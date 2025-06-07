@@ -38,5 +38,40 @@ Mat binarized_frame(const Mat& frame_gray, int threshold) {
 }
 
 int main() {
+    VideoCapture video("D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Videos/video2.mp4");
+    string trajectory_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/";
+
+    Mat frame_captured, frame_gray, frame_binarized, previous_frame_gray;
+    vector<Point> trajectory;
+
+    namedWindow("Detection", cv::WINDOW_AUTOSIZE);
+    int threshold_value = 100;
+
+    while (true) {
+        video >> frame_captured;
+        if (frame_captured.empty()) {
+            break;
+        }
+        
+        resize(frame_captured, frame_captured, Size(1280, 720));
+        frame_gray = convert_gray(frame_captured);
+
+        if (!previous_frame_gray.empty()) {
+            absdiff(frame_gray, previous_frame_gray, frame_binarized);
+            frame_binarized = binarized_frame(frame_binarized, threshold_value);
+
+            imshow("Binarized Frame", frame_binarized);
+        }
+
+        previous_frame_gray = frame_gray.clone();
+
+        if (waitKey(30) >= 27) {
+            break;
+        }
+    }
+
+    video.release();
+    destroyAllWindows();
+
     return 0;
 }
