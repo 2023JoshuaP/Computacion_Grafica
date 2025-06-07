@@ -41,11 +41,23 @@ int main() {
     VideoCapture video("D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Videos/video3.mp4");
     string trajectory_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/";
 
+    VideoWriter writer_binarized(trajectory_path + "binarized_output.avi", 
+                             VideoWriter::fourcc('M', 'J', 'P', 'G'), 
+                             30, Size(1280, 720), false); // false = escala de grises
+
+    VideoWriter writer_eroded(trajectory_path + "eroded_output.avi", 
+                            VideoWriter::fourcc('M', 'J', 'P', 'G'), 
+                            30, Size(1280, 720), false);
+
+    VideoWriter writer_dilated(trajectory_path + "dilated_output.avi", 
+                            VideoWriter::fourcc('M', 'J', 'P', 'G'), 
+                            30, Size(1280, 720), false);
+
     Mat frame_captured, frame_gray, frame_binarized, previous_frame_gray;
     vector<Point> trajectory;
 
     namedWindow("Detection", cv::WINDOW_AUTOSIZE);
-    int threshold_value = 10; /* Para el caso de una moneda el umbral debe ser menor, minimo hasta 30*/
+    int threshold_value = 30; /* Para el caso de una moneda el umbral debe ser menor, minimo hasta 30 */
 
     while (true) {
         video >> frame_captured;
@@ -59,10 +71,22 @@ int main() {
         if (!previous_frame_gray.empty()) {
             absdiff(frame_gray, previous_frame_gray, frame_binarized);
             frame_binarized = binarized_frame(frame_binarized, threshold_value);
+            Mat kernel = (Mat_<uchar>(3, 3) << 
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1);
+            Mat frame_dilated, frame_eroded;
+            erode(frame_binarized, frame_eroded, kernel);
+            dilate(frame_binarized, frame_dilated, kernel); 
             imshow("Binarized Frame", frame_binarized);
+            imshow("Dilated Frame", frame_dilated);
+            imshow("Eroded Frame", frame_eroded);
+            writer_binarized.write(frame_binarized);
+            writer_eroded.write(frame_eroded);
+            writer_dilated.write(frame_dilated);
 
             vector<vector<Point>> contours;
-            findContours(frame_binarized, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+            findContours(frame_eroded, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
             if (!contours.empty()) {
                 int contour_index = 0;
@@ -100,6 +124,9 @@ int main() {
     }
 
     video.release();
+    writer_binarized.release();
+    writer_eroded.release();
+    writer_dilated.release();
     
     Mat trajectory_image(720, 1280, CV_8UC3, Scalar(255, 255, 255));
     for (size_t i = 1; i < trajectory.size(); i++) {
