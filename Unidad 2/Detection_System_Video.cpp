@@ -38,14 +38,14 @@ Mat binarized_frame(const Mat& frame_gray, int threshold) {
 }
 
 int main() {
-    VideoCapture video("D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Videos/video2.mp4");
+    VideoCapture video("D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Videos/video3.mp4");
     string trajectory_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/";
 
     Mat frame_captured, frame_gray, frame_binarized, previous_frame_gray;
     vector<Point> trajectory;
 
     namedWindow("Detection", cv::WINDOW_AUTOSIZE);
-    int threshold_value = 100;
+    int threshold_value = 10; /* Para el caso de una moneda el umbral debe ser menor, minimo hasta 30*/
 
     while (true) {
         video >> frame_captured;
@@ -59,11 +59,40 @@ int main() {
         if (!previous_frame_gray.empty()) {
             absdiff(frame_gray, previous_frame_gray, frame_binarized);
             frame_binarized = binarized_frame(frame_binarized, threshold_value);
-
             imshow("Binarized Frame", frame_binarized);
+
+            vector<vector<Point>> contours;
+            findContours(frame_binarized, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+            if (!contours.empty()) {
+                int contour_index = 0;
+                double largest_area = 0;
+
+                for (int i = 0; i < contours.size(); i++) {
+                    double area = contourArea(contours[i]);
+                    if (area > largest_area) {
+                        largest_area = area;
+                        contour_index = i;
+                    }
+                }
+
+                if (largest_area > 100) {
+                    Moments m = moments(contours[contour_index]);
+                    if (m.m00 > 0) {
+                        Point center((int)(m.m10 / m.m00), (int)(m.m01 / m.m00));
+                        trajectory.push_back(center);
+                        circle(frame_captured, center, 5, Scalar(255, 0, 0), -1);
+                    }
+                }
+            }
         }
 
         previous_frame_gray = frame_gray.clone();
+
+        for (size_t i = 1; i < trajectory.size(); i++) {
+            line(frame_captured, trajectory[i - 1], trajectory[i], Scalar(0, 255, 0), 2);
+        }
+        imshow("Detection", frame_captured);
 
         if (waitKey(30) >= 27) {
             break;
@@ -71,6 +100,15 @@ int main() {
     }
 
     video.release();
+    
+    Mat trajectory_image(720, 1280, CV_8UC3, Scalar(255, 255, 255));
+    for (size_t i = 1; i < trajectory.size(); i++) {
+        line(trajectory_image, trajectory[i - 1], trajectory[i], Scalar(0, 0, 255), 2);
+    }
+    imshow("Result trajectory", trajectory_image);
+    imwrite(trajectory_path + "trajectory_image.png", trajectory_image);
+    
+    waitKey(0);
     destroyAllWindows();
 
     return 0;
