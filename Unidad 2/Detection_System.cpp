@@ -3,14 +3,14 @@
 using namespace std;
 using namespace cv;
 
-Mat convert_gray(const Mat& frame) {
-    Mat frame_gray(frame.rows, frame.cols, CV_8UC1);
-    int rows = frame.rows;
-    int colums = frame.cols;
+Mat convert_gray(const Mat& frame_captured) {
+    Mat frame_gray(frame_captured.rows, frame_captured.cols, CV_8UC1);
+    int rows = frame_captured.rows;
+    int colums = frame_captured.cols;
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < colums; j++) {
-            Vec3b pixel_value = frame.at<Vec3b>(i, j);
+            Vec3b pixel_value = frame_captured.at<Vec3b>(i, j);
             uchar gray_value = (uchar)(0.21 * pixel_value[2] + 0.72 * pixel_value[1] + 0.07 * pixel_value[0]);
             frame_gray.at<uchar>(i, j) = gray_value;
         }
@@ -19,17 +19,17 @@ Mat convert_gray(const Mat& frame) {
     return frame_gray;
 }
 
-Mat binarized_frame(const Mat& frame, int threshold) {
-    Mat frame_binarized(frame.rows, frame.cols, CV_8UC1);
-    int rows = frame.rows;
-    int colums = frame.cols;
+Mat binarized_frame(const Mat& frame_gray, int threshold) {
+    Mat frame_binarized(frame_gray.rows, frame_gray.cols, CV_8UC1);
+    int rows = frame_gray.rows;
+    int colums = frame_gray.cols;
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < colums; j++) {
-            uchar pixel_value = frame.at<uchar>(i, j);
-            if (pixel_value > threshold) 
+            uchar pixel_value = frame_gray.at<uchar>(i, j);
+            if (pixel_value > threshold)
                 frame_binarized.at<uchar>(i, j) = 255;
-            else 
+            else
                 frame_binarized.at<uchar>(i, j) = 0;
         }
     }
@@ -38,72 +38,89 @@ Mat binarized_frame(const Mat& frame, int threshold) {
 }
 
 int main() {
-    VideoCapture cap(0);
-    Mat frame_capture, frame_gray, frame_binarized;
+    VideoCapture video(0);
+    string trajectory_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/";
+    //string frame_binarized_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Frames/";
+    //string frame_eroded_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Eroded/";
+
+    Mat frame_captured, frame_gray, frame_binarized, previous_frame_gray;
     vector<Point> trajectory;
-    int threshold_value;
+
+    namedWindow("Detection", cv::WINDOW_AUTOSIZE);
+    int threshold_value = 30; /* Para el caso de una moneda el umbral debe ser menor, minimo hasta 30 */
+    //int frame_count = 0;
 
     while (true) {
-        cap >> frame_capture;
-        if (frame_capture.empty()) {
-            cerr << "Error: Could not capture frame." << endl;
+        video >> frame_captured;
+        if (frame_captured.empty()) {
             break;
         }
+        
+        resize(frame_captured, frame_captured, Size(1280, 720));
+        frame_gray = convert_gray(frame_captured);
 
-        resize(frame_capture, frame_capture, Size(640, 480));
-        frame_gray = convert_gray(frame_capture);
-        threshold_value = threshold(frame_gray, frame_binarized, 0, 255, THRESH_BINARY | THRESH_OTSU);
-        frame_binarized = binarized_frame(frame_gray, (int)threshold_value);
+        if (!previous_frame_gray.empty()) {
+            absdiff(frame_gray, previous_frame_gray, frame_binarized);
+            frame_binarized = binarized_frame(frame_binarized, threshold_value);
+            Mat frame_binarized_copy = frame_binarized.clone();
+            Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
+            erode(frame_binarized, frame_binarized, kernel);
+            //string binarized = frame_binarized_path + "binarized_frame_" + to_string(frame_count) + ".png";
+            //string eroded = frame_eroded_path + "eroded_frame_" + to_string(frame_count) + ".png";
+            //imwrite(binarized, frame_binarized_copy);
+            //imwrite(eroded, frame_binarized);
+            //imshow("Binarized Frame", frame_binarized);
 
-        // imshow("Frame Capture", frame_capture);
-        // imshow("Frame Gray", frame_gray);
-        // imshow("Frame Binarized", frame_binarized);
+            vector<vector<Point>> contours;
+            findContours(frame_binarized, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-        vector<vector<Point>> contours;
-        findContours(frame_binarized, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-        Point center;
+            if (!contours.empty()) {
+                int contour_index = 0;
+                double largest_area = 0;
 
-        if (!contours.empty()) {
-            double max_area = 0;
-            int max_index = -1;
-            for (size_t i = 0; i < contours.size(); i++) {
-                double area = contourArea(contours[i]);
-                if (area > max_area) {
-                    max_area = area;
-                    max_index = i;
+                for (int i = 0; i < contours.size(); i++) {
+                    double area = contourArea(contours[i]);
+                    if (area > largest_area) {
+                        largest_area = area;
+                        contour_index = i;
+                    }
                 }
-            }
-            if (max_index >= 0) {
-                Moments m = moments(contours[max_index]);
-                if (m.m00 != 0) {
-                    center = Point(m.m10 / m.m00, m.m01 / m.m00);
-                    Mat mask(frame_gray.rows + 2, frame_gray.cols + 2, CV_8UC1, Scalar(0));
-                    floodFill(frame_binarized, mask, center, Scalar(255), 0, Scalar(5), Scalar(5), FLOODFILL_MASK_ONLY | 4);
-                    Mat mask_roi = mask(Rect(1, 1, frame_gray.cols, frame_gray.rows));
-                    Moments fm = moments(mask_roi, true);
-                    if (fm.m00 != 0) {
-                        Point flood_center = Point(fm.m10 / fm.m00, fm.m01 / fm.m00);
-                        trajectory.push_back(flood_center);
-                        circle(frame_capture, flood_center, 5, Scalar(0, 255, 0), -1);
+
+                if (largest_area > 100) {
+                    Moments m = moments(contours[contour_index]);
+                    if (m.m00 > 0) {
+                        Point center((int)(m.m10 / m.m00), (int)(m.m01 / m.m00));
+                        trajectory.push_back(center);
+                        circle(frame_captured, center, 5, Scalar(255, 0, 0), -1);
                     }
                 }
             }
         }
 
-        if (waitKey(1) == 'q') {
-            cout << "Exiting..." << endl;
-            break;
-        }
+        previous_frame_gray = frame_gray.clone();
+        //frame_count++;
 
         for (size_t i = 1; i < trajectory.size(); i++) {
-            line(frame_capture, trajectory[i - 1], trajectory[i], Scalar(0, 0, 255), 2);
+            line(frame_captured, trajectory[i - 1], trajectory[i], Scalar(0, 255, 0), 2);
         }
+        imshow("Detection", frame_captured);
 
-        imshow("Trajectory", frame_capture);
+        if (waitKey(30) >= 27) {
+            break;
+        }
     }
 
-    cap.release();
-    destroyAllWindows();
+    video.release();
     
+    Mat trajectory_image(720, 1280, CV_8UC3, Scalar(255, 255, 255));
+    for (size_t i = 1; i < trajectory.size(); i++) {
+        line(trajectory_image, trajectory[i - 1], trajectory[i], Scalar(0, 0, 255), 2);
+    }
+    imshow("Result trajectory", trajectory_image);
+    imwrite(trajectory_path + "trajectory_image.png", trajectory_image);
+    
+    waitKey(0);
+    destroyAllWindows();
+
     return 0;
 }
