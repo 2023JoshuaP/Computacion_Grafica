@@ -44,9 +44,9 @@ Point process_frame_trajectory(const Mat& frame_current, const Mat& previous_fra
     Mat structure = getStructuringElement(MORPH_RECT, Size(5, 5));
     erode(frame_binarized, frame_eroded, structure);
 
-    imwrite(path + "Frames/binarized_frame_" + to_string(count_frame) + ".png", frame_binarized_copy);
-    imwrite(path + "Eroded/eroded_frame_" + to_string(count_frame) + ".png", frame_eroded);
-    imshow("Binarized Frame", frame_binarized);
+    // imwrite(path + "Frames/binarized_frame_" + to_string(count_frame) + ".png", frame_binarized_copy);
+    // imwrite(path + "Eroded/eroded_frame_" + to_string(count_frame) + ".png", frame_eroded);
+    // imshow("Binarized Frame", frame_binarized);
 
     vector<vector<Point>> contours;
     findContours(frame_binarized, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
@@ -75,8 +75,8 @@ Point process_frame_trajectory(const Mat& frame_current, const Mat& previous_fra
 }
 
 int main() {
-    // VideoCapture video(0); // Para cámara en vivo
-    VideoCapture video("D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Videos/video2.mp4");
+    VideoCapture video(0); // Para cámara en vivo
+    //VideoCapture video("D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/Videos/video2.mp4");
 
     string trajectory_path = "D:/UNSA EPCC/7mo semestre/Computacion Grafica/Unidad 2/";
     string frame_binarized_path = trajectory_path + "Frames/";
@@ -86,7 +86,7 @@ int main() {
     vector<Point> trajectory;
 
     namedWindow("Detection", cv::WINDOW_AUTOSIZE);
-    int threshold_value = 100;
+    int threshold_value = 10;
     int frame_count = 0;
 
     while (true) {
