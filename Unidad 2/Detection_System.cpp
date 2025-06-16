@@ -47,7 +47,7 @@ int main() {
     vector<Point> trajectory;
 
     namedWindow("Detection", cv::WINDOW_AUTOSIZE);
-    int threshold_value = 30; /* Para el caso de una moneda el umbral debe ser menor, minimo hasta 30 */
+    int threshold_value = 50; /* Para el caso de una moneda el umbral debe ser menor, minimo hasta 30 */
     //int frame_count = 0;
 
     while (true) {
