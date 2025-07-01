@@ -1,17 +1,14 @@
-/* Librerias necesarias para OpenGL */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-/* Librerias de C++ */
 #include <iostream>
 #include <vector>
 #include <fstream>
 using namespace std;
 using namespace glm;
 
-/* Shaders a utilizar (codigo GLSL almacenado en un string ejecutada en el GPU) */
 const char* vertex_shader_source = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
@@ -28,7 +25,6 @@ void main() {
     FragColor = vec4(color, 1.0);
 })";
 
-/* Estructuras a utilizar en el visor */
 struct Atom {
     float position_x, position_y, position_z;
     string symbol;
@@ -38,13 +34,11 @@ struct Bond {
     int atom_1, atom_2;
 };
 
-/* Variables globales a utilizar */
 vector<Atom> atoms;
 vector<Bond> bonds;
 float rotation_x = 0, rotation_y = 0, zoom = 10.0f;
 const float rotation_speed = 0.1f, zoom_speed = 0.02f;
 
-/* Funcion para cargar y leer el archivo de moleculas */
 void load_file(const string& file) {
     ifstream file_molecule(file);
     if (!file_molecule.is_open()) {
@@ -77,7 +71,6 @@ void load_file(const string& file) {
     }
 }
 
-/* Funcion para crear shaders basicos */
 unsigned int create_shader() {
     unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -97,7 +90,6 @@ unsigned int create_shader() {
     return program;
 }
 
-/* Funcion para interaccion del usuario al usar el visor */
 void interface_user(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -115,7 +107,6 @@ void interface_user(GLFWwindow* window) {
         zoom += zoom_speed;
 }
 
-/* Funcion de inicializacion para el buffer de Atomos */
 void atom_buffer(unsigned int& VaO, unsigned int& VbO, const vector<Atom>& atoms) {
     vector<float> vertices;
     for (const auto& atom : atoms) {
@@ -132,7 +123,6 @@ void atom_buffer(unsigned int& VaO, unsigned int& VbO, const vector<Atom>& atoms
     glEnableVertexAttribArray(0);
 }
 
-/* Funcion de inicializacion para el buffer de Vinculos */
 void bond_buffer(unsigned int& VaO, unsigned int& VbO, const vector<Bond>& bonds, const vector<Atom>& atoms) {
     vector<float> vertices;
     for (const auto& bond : bonds) {
@@ -156,7 +146,6 @@ void bond_buffer(unsigned int& VaO, unsigned int& VbO, const vector<Bond>& bonds
     glEnableVertexAttribArray(0);
 }
 
-/* Funcion que muestra la molecula en el visor 3D */
 void render(GLFWwindow* window, unsigned int shader, unsigned int atom_VaO, unsigned int bond_VaO, const vector<Atom>& atoms, const vector<Bond>& bonds) {
     glPointSize(8.0f);
     while (!glfwWindowShouldClose(window)) {
