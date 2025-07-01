@@ -39,6 +39,7 @@ struct Bond {
 vector<Atom> atoms;
 vector<Bond> bonds;
 float rotation_x = 0, rotation_y = 0, zoom = 10.0f;
+const float rotation_speed = 0.1f, zoom_speed = 0.02f;
 
 void load_file(const string& file) {
     ifstream file_molecule(file);
@@ -95,17 +96,17 @@ void interface_user(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        rotation_y -= 1.0f;
+        rotation_y -= rotation_speed;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        rotation_y += 1.0f;
+        rotation_y += rotation_speed;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        rotation_x -= 1.0f;
+        rotation_x -= rotation_speed;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        rotation_x += 1.0f;
+        rotation_x += rotation_speed;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        zoom -= 0.1f;
+        zoom -= zoom_speed;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        zoom += 0.1f;
+        zoom += zoom_speed;
 }
 
 int main() {
